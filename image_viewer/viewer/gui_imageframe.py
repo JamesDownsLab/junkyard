@@ -218,7 +218,7 @@ class ImageFrame():
 
     def destroy(self):
         """ ImageFrame destructor """
-        logging.info('Close image: {}'.format(self.path))
+        # logging.info('Close image: {}'.format(self.path))
         self.__image.close()
         self.__canvas.destroy()
         self.__imframe.destroy()

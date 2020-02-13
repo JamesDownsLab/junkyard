@@ -67,24 +67,24 @@ class Config():
         self.__check_section(self.__window)
         self.__config[self.__window][self.__state] = state
 
-    def get_opened_path(self):
-        """ Get opened path if it wasn't closed previously or return an empty string """
-        try:
-            path = self.__config[self.__window][self.__opened_path]
-            if path == self.__default_opened_path or not os.path.exists(path):
-                return ''
-            else:
-                return path
-        except:
-            return ''
-
-    def set_opened_path(self, path = ''):
-        """ Remember opened path to the config INI file """
-        self.__check_section(self.__window)
-        if path:
-            self.__config[self.__window][self.__opened_path] = path
-        else:
-            self.__config[self.__window][self.__opened_path] = self.__default_opened_path
+    # def get_opened_path(self):
+    #     """ Get opened path if it wasn't closed previously or return an empty string """
+    #     try:
+    #         path = self.__config[self.__window][self.__opened_path]
+    #         if path == self.__default_opened_path or not os.path.exists(path):
+    #             return ''
+    #         else:
+    #             return path
+    #     except:
+    #         return ''
+    #
+    # def set_opened_path(self, path = ''):
+    #     """ Remember opened path to the config INI file """
+    #     self.__check_section(self.__window)
+    #     if path:
+    #         self.__config[self.__window][self.__opened_path] = path
+    #     else:
+    #         self.__config[self.__window][self.__opened_path] = self.__default_opened_path
 
     def get_roi_size(self):
         """ Get tuple (width, height) of the roi window """

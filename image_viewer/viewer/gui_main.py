@@ -115,10 +115,6 @@ class MainGUI(ttk.Frame):
         self.__placeholder.grid(row=0, column=0, sticky='nswe')
         self.__placeholder.rowconfigure(0, weight=1)  # make grid cell expandable
         self.__placeholder.columnconfigure(0, weight=1)
-        # If image wasn't closed previously, open this image once again
-        path = self.__config.get_opened_path()
-        if path:
-            self.__set_image(self.image)  # open previous image
 
     def __set_image(self, image):
         """ Close previous image and set a new one """
@@ -142,10 +138,6 @@ class MainGUI(ttk.Frame):
 
     def destroy(self):
         """ Destroy the main frame object and release all resources """
-        if self.__imframe:  # image is not closed
-            self.__config.set_opened_path(self.__imframe.path)  # remember opened image
-        else:  # image is closed
-            self.__config.set_opened_path()  # no path
         self.__close_image()
         self.__config.destroy()
         logging.info('Close GUI')
