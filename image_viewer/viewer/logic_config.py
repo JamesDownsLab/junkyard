@@ -13,7 +13,7 @@ class Config():
         # Value -- first place. Options -- second place.
         self.__window = 'Window'  # info about the main window
         self.__geometry = 'Geometry'  # size and position of the main window 'WxH±X±Y'
-        self.default_geometry = '800x600+0+0'  # default window geometry 'WxH±X±Y'
+        self.default_geometry = '1280x720+0+0'  # default window geometry 'WxH±X±Y'
         self.__state = 'State'  # state of the window: normal, zoomed, etc.
         self.default_state = 'normal'  # normal state of the window
         self.__opened_path = 'OpenedPath'  # last opened path of the task or image

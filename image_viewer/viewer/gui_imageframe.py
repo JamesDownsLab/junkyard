@@ -8,9 +8,8 @@ from .gui_autoscrollbar import AutoScrollbar
 
 class ImageFrame():
     """ Display an image and necessary functional for rectangle, zoom, shift, etc. """
-    def __init__(self, placeholder, path, roi_size):
+    def __init__(self, placeholder, image, roi_size):
         """ Initialize the ImageFrame """
-        self.path = path  # path to the image, should be public to remember it into INI config file
         self.__roi_size = roi_size  # obtain size of the roi
         self.__roi_tag = 'roi'
         self.__text_size = 14  # size of the text
@@ -51,9 +50,9 @@ class ImageFrame():
         # Handle keystrokes in idle mode, because program slows down on a weak computers,
         # when too many key stroke events in the same time
         self.__canvas.bind('<Key>', lambda event: self.__canvas.after_idle(self.__keystroke, event))
-        logging.info('Open image: {}'.format(self.path))
+        # logging.info('Open image: {}'.format(self.path))
         self.__state = 'hidden'
-        self.__image = Image.open(self.path)  # open image
+        self.__image = image  # open image
         # Put image into container rectangle and use it to set proper coordinates to the image
         self.__container = self.__canvas.create_rectangle((0, 0, self.__image.size), width=0)
         # Set region of interest (roi) rectangle on the canvas and make it invisible

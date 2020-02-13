@@ -12,13 +12,15 @@ from .logic_logger import logging, handle_exception
 
 class MainGUI(ttk.Frame):
     """ GUI of Image Viewer """
-    def __init__(self, mainframe):
+    def __init__(self, mainframe, image):
         """ Initialize the Frame """
         logging.info('Open GUI')
+        self.image = image
         ttk.Frame.__init__(self, master=mainframe)
         self.__create_instances()
         self.__create_main_window()
         self.__create_widgets()
+        self.__open_image(image)
 
     def __create_instances(self):
         """ Instances for GUI are created here """
@@ -34,19 +36,13 @@ class MainGUI(ttk.Frame):
         # self.destructor gets fired when the window is destroyed
         self.master.protocol('WM_DELETE_WINDOW', self.destroy)
         #
-        self.__menubar = tk.Menu(self.master)  # create main menu bar
-        self.master.configure(menu=self.__menubar)  # should be BEFORE iconbitmap, it's important
         # Add menubar to the main window BEFORE iconbitmap command. Otherwise it will shrink
         # in height by 20 pixels after each opening of the window.
-        self.master.iconbitmap(os.path.join('viewer', 'logo.ico'))  # set logo icon
         #
         self.__is_fullscreen = False  # enable / disable fullscreen mode
-        self.__empty_menu = tk.Menu(self)  # empty menu to hide the real menubar in fullscreen mode
         self.__bugfix = False  # BUG! when change: fullscreen --> zoomed --> normal
         self.__previous_state = 0  # previous state of the event
         # List of shortcuts in the following format: [name, keycode, function]
-        self.__shortcuts = [['Ctrl+O', 79, self.__open_image],   # 1 open image
-                            ['Ctrl+W', 87, self.__close_image]]  # 2 close image
         # Bind events to the main window
         self.master.bind('<Motion>', self.__motion)  # track and handle mouse pointer position
         self.master.bind('<F11>', self.__fullscreen_toggle)  # toggle fullscreen mode
@@ -67,28 +63,12 @@ class MainGUI(ttk.Frame):
         else:
             self.__is_fullscreen = not self.__is_fullscreen  # toggling the boolean
         # Hide menubar in fullscreen mode or show it otherwise
-        if self.__is_fullscreen:
-            self.__menubar_hide()
-        else:  # show menubar
-            self.__menubar_show()
         self.master.wm_attributes('-fullscreen', self.__is_fullscreen)  # fullscreen mode on/off
-
-    def __menubar_show(self):
-        """ Show menu bar """
-        self.master.configure(menu=self.__menubar)
-
-    def __menubar_hide(self):
-        """ Hide menu bar """
-        self.master.configure(menu=self.__empty_menu)
 
     def __motion(self, event):
         """ Track mouse pointer and handle its position """
         if self.__is_fullscreen:
             y = self.master.winfo_pointery()
-            if 0 <= y < 20:  # if close to the upper side of the main window
-                self.__menubar_show()
-            else:
-                self.__menubar_hide()
 
     def __keystroke(self, event):
         """ Language independent handle events from the keyboard
@@ -128,27 +108,6 @@ class MainGUI(ttk.Frame):
 
     def __create_widgets(self):
         """ Widgets for GUI are created here """
-        # Enable/disable these menu labels in the main window
-        self.__label_recent = 'Open recent'
-        self.__label_close = 'Close image'
-        # Create menu for the image.
-        self.__image_menu = tk.Menu(self.__menubar, tearoff=False, postcommand=self.__list_recent)
-        self.__image_menu.add_command(label='Open image', command=self.__shortcuts[0][2],
-                                      accelerator=self.__shortcuts[0][0])
-        self.__recent_images = tk.Menu(self.__image_menu, tearoff=False)
-        self.__image_menu.add_cascade(label=self.__label_recent, menu=self.__recent_images)
-        self.__image_menu.add_command(label=self.__label_close, command=self.__shortcuts[1][2],
-                                      accelerator=self.__shortcuts[1][0], state='disabled')
-        self.__menubar.add_cascade(label='File', menu=self.__image_menu)
-        self.__image_menu.add_separator()
-        self.__image_menu.add_command(label='Exit', command=self.destroy, accelerator=u'Alt+F4')
-        # Create menu for the view: fullscreen, default size, etc.
-        self.__view_menu = tk.Menu(self.__menubar, tearoff=False)
-        self.__view_menu.add_command(label='Fullscreen', command=self.__fullscreen_toggle,
-                                     accelerator='F11')
-        self.__view_menu.add_command(label='Default size', command=self.__default_geometry,
-                                     accelerator='F5')
-        self.__menubar.add_cascade(label='View', menu=self.__view_menu)
         # Create placeholder frame for the image
         self.master.rowconfigure(0, weight=1)  # make grid cell expandable
         self.master.columnconfigure(0, weight=1)
@@ -159,47 +118,19 @@ class MainGUI(ttk.Frame):
         # If image wasn't closed previously, open this image once again
         path = self.__config.get_opened_path()
         if path:
-            self.__set_image(path)  # open previous image
+            self.__set_image(self.image)  # open previous image
 
-    def __list_recent(self):
-        """ List of the recent images """
-        self.__recent_images.delete(0, 'end')  # empty previous list
-        l = self.__config.get_recent_list()  # get list of recently opened images
-        for path in l:  # get list of recent image paths
-            self.__recent_images.add_command(label=path, command=lambda x=path: self.__set_image(x))
-        # Disable recent list menu if it is empty.
-        if self.__recent_images.index('end') is None:
-            self.__image_menu.entryconfigure(self.__label_recent, state='disabled')
-        else:
-            self.__image_menu.entryconfigure(self.__label_recent, state='normal')
-
-    def __set_image(self, path):
+    def __set_image(self, image):
         """ Close previous image and set a new one """
         self.__close_image()  # close previous image
-        self.__imframe = ImageFrame(placeholder=self.__placeholder, path=path,
+        self.__imframe = ImageFrame(placeholder=self.__placeholder, image=image,
                                     roi_size=self.__config.get_roi_size())
-        self.master.title(self.__default_title + ': {}'.format(path))  # change window title
-        self.__config.set_recent_path(path)  # save image path into config
-        # Enable 'Close image' submenu of the 'File' menu
-        self.__image_menu.entryconfigure(self.__label_close, state='normal')
+        # self.master.title(self.__default_title + ': {}'.format(path))  # change window title
+        # self.__config.set_recent_path(path)  # save image path into config
 
     @handle_exception(0)
-    def __open_image(self):
-        """ Open image in Image Viewer """
-        path = askopenfilename(title='Select an image for the flight task',
-                               initialdir=self.__config.get_recent_path())
-        if path == '': return
-        # Check if it is an image
-        try:  # try to open and close image with PIL
-            img = Image.open(path)
-            img.close()
-        except:
-            messagebox.showinfo('Not an image',
-                                'This is not an image: "{}"\nPlease, select an image.'.format(path))
-            self.__open_image()  # try to open new image again
-            return
-        #
-        self.__set_image(path)
+    def __open_image(self, image):
+        self.__set_image(image)
 
     def __close_image(self):
         """ Close image """
@@ -208,7 +139,6 @@ class MainGUI(ttk.Frame):
             self.__imframe = None
             self.master.title(self.__default_title)  # set default window title
             # Disable 'Close image' submenu of the 'File' menu
-            self.__image_menu.entryconfigure(self.__label_close, state='disabled')
 
     def destroy(self):
         """ Destroy the main frame object and release all resources """
