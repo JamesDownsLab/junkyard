@@ -39,8 +39,8 @@ class ImageFrame():
         vbar.configure(command=self.__scroll_y)
         # Bind events to the Canvas
         self.__canvas.bind('<Configure>', self.__show_image)  # canvas is resized
-        self.__canvas.bind('<ButtonPress-1>', self.__move_from)  # remember canvas position
-        self.__canvas.bind('<B1-Motion>', self.__move_to)  # move canvas to the new position
+        self.__canvas.bind('<Shift-ButtonPress-1>', self.__move_from)  # remember canvas position
+        self.__canvas.bind('<Shift-B1-Motion>', self.__move_to)  # move canvas to the new position
         self.__canvas.bind('<Motion>', self.__motion)  # handle mouse motion
         self.__canvas.bind('<MouseWheel>', self.__wheel)  # zoom for Windows and MacOS, but not Linux
         self.__canvas.bind('<Button-5>', self.__wheel)  # zoom for Linux, wheel scroll down
@@ -86,19 +86,19 @@ class ImageFrame():
         h = (self.__roi_size[1] * self.__imscale) / 2
         bbox = self.__canvas.coords(self.__container)  # get image area
         # Draw roi rectangle
-        if bbox[0] + w <= x < bbox[2] - w and bbox[1] + h <= y < bbox[3] - h:
-            self.__canvas.coords(self.__roi_rect, (x - w, y - h, x + w, y + h))  # relocate roi
-            if self.__state == 'hidden':
-                self.__state = 'normal'
-                self.__canvas.itemconfigure(self.__roi_rect, state='normal')  # show roi
-                self.__canvas.itemconfigure(self.__text_warning, state='hidden')  # hide warning
-        else:  # otherwise show warning
-            self.__canvas.coords(self.__text_warning, (x, y))  # relocate text
-            if self.__state == 'normal':
-                self.__state = 'hidden'
-                self.__canvas.itemconfigure(self.__text_warning, state='normal')  # show warning
-                self.__canvas.itemconfigure(self.__roi_rect, state='hidden')  # hide roi
-        self.__get_roi()  # update roi position in the console
+        # if bbox[0] + w <= x < bbox[2] - w and bbox[1] + h <= y < bbox[3] - h:
+        #     self.__canvas.coords(self.__roi_rect, (x - w, y - h, x + w, y + h))  # relocate roi
+        #     if self.__state == 'hidden':
+        #         self.__state = 'normal'
+        #         self.__canvas.itemconfigure(self.__roi_rect, state='normal')  # show roi
+        #         self.__canvas.itemconfigure(self.__text_warning, state='hidden')  # hide warning
+        # else:  # otherwise show warning
+        #     self.__canvas.coords(self.__text_warning, (x, y))  # relocate text
+        #     if self.__state == 'normal':
+        #         self.__state = 'hidden'
+        #         self.__canvas.itemconfigure(self.__text_warning, state='normal')  # show warning
+        #         self.__canvas.itemconfigure(self.__roi_rect, state='hidden')  # hide roi
+        # self.__get_roi()  # update roi position in the console
 
     def __get_roi(self):
         """ Obtain roi image rectangle and output in the console
